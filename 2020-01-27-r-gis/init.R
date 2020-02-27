@@ -71,3 +71,48 @@ hwy_50_line <- st_linestring(
 )
 plot(hwy_50_line, lwd = 2, col = 'springgreen')
 
+## left off here in the post
+## merge into hwy 93
+hwy_93_merged <- st_union(hwy_50_line, st_geometry(hwy_93))
+#> Error in geos_op2_geom("union", x, y) : 
+#> st_crs(x) == st_crs(y) is not TRUE
+hwy_50_geom <- st_geometry(hwy_50_line)
+st_crs(hwy_50_geom) <- st_crs(4326)
+
+hwy_93_merged <- st_union(hwy_50_geom, st_union(st_geometry(hwy_93)))
+plot(st_geometry(hwy_93_merged))
+
+plot(st_geometry(wp_county))
+plot(st_geometry(hwy_93_merged), lwd = 2, col = 'purple', add = T)
+
+# how can I use this to subset the polygon
+wp_split <- st_difference(
+  st_transform(wp_county, 26911),
+  st_buffer(st_transform(hwy_93_merged, 26911), dist = 3)
+)
+wp_split <- st_cast(st_transform(wp_split, 4326), 'POLYGON')
+wp_split$id <- 1:nrow(wp_split)
+plot(wp_split['id'])
+wp_split
+
+wp_split <- st_difference(
+  wp_county,
+  st_buffer(hwy_93_merged, dist = .0001)
+)
+wp_split <- st_cast(wp_split, 'POLYGON')
+wp_split$id <- 1:nrow(wp_split)
+plot(wp_split['id'])
+wp_split
+
+
+## take polygon 3 & unions to lincoln county
+aoi_union <- st_union(wp_split[wp_split$id == 3, ], 
+                      counties[counties$CNTYNAME == 'Lincoln', ])
+plot(st_geometry(aoi_union))
+st_crs(aoi_union)
+
+## subset the features
+features_aoi <- features[aoi_union, ]
+
+plot(st_geometry(aoi_union))
+plot(st_geometry(features_aoi), pch = 20, col = scales::alpha('purple', .1), add = T)
