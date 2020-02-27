@@ -9,6 +9,7 @@ output: pdf_document
 knitr::opts_chunk$set(eval = FALSE)
 ```
 
+*Note: this file is generated from a post on my website, [https://mitchellgritts.com/load-kml-and-kmz-files-into-r/](https://mitchellgritts.com/load-kml-and-kmz-files-into-r/). Please check there for the most up-to-date content*
 
 I always forget it is simply `sf::read_sf` to read `.kml` files into R. That is, until it isn't. There are few instances where `sf::read_sf` behaves strangely. Mostly when attempting to read `.kmz` files.
 
