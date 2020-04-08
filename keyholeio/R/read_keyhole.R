@@ -9,13 +9,31 @@
 #' read_keyhole(system.file('extdata', 'routes.kml', package = 'keyholeio'))
 
 read_keyhole <- function(file) {
-  # parse filename
-  filename <- strsplit(basename(file), split = '\\.')
+  # get file extension
+  ext <- strsplit(basename(file), split = '\\.')[[1]][-1]
 
-  # initiate conditions
-  is_kml <- filename[[1]][-1] == 'kml'
-  is_kmz <- filename[[1]][-1] == 'kmz'
+  # if kml
+  if (ext == 'kml') {
+    layers <- sf::st_layers(file)$name
 
-  # check that input is kml or kmz, throw error otherwise
-  if(!(any(is_kml, is_kmz))) stop('file must be a kml or kmz file')
+    if (length(layers) > 1) {
+      return(Reduce('rbind', lapply(layers, sf::read_sf, dsn = file)))
+    }
+
+    return(sf::read_sf(file))
+  } else if (ext == 'kmz') {
+    target_file <- '.temp.kml.zip'
+
+    fs::file_copy(file, target_file, overwrite = T)
+    unzip(target_file, overwrite = T)
+
+    sf_out <- sf::read_sf('doc.kml')
+
+    fs::file_delete(target_file)
+    fs::file_delete('doc.kml')
+
+    return(sf_out)
+  } else {
+    stop('file must be a kml or kmz file')
+  }
 }
